@@ -14,9 +14,14 @@ const App: React.FC = () => {
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [direction, setDirection] = useState<'next' | 'prev'>('next');
   const [isInitialRender, setIsInitialRender] = useState(true);
+  const [touchStart, setTouchStart] = useState<number | null>(null);
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+  const [showInstructions, setShowInstructions] = useState(true);
+
   const hasFetched = useRef(false);
   const nodeRef = useRef<HTMLDivElement>(null);
   const contentNodeRef = useRef<HTMLDivElement>(null);
+  const instructionsRef = useRef<HTMLDivElement>(null);
 
   const fetchMoreData = useCallback(async () => {
     if (isLoadingMore) return;
@@ -92,6 +97,52 @@ const App: React.FC = () => {
     }
   }, [currentIndex, items, isTransitioning]);
 
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setTouchStart(e.touches[0].clientY);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!touchStart) return;
+
+    const currentTouch = e.touches[0].clientY;
+    const diff = touchStart - currentTouch;
+
+    // Only trigger if the swipe is significant enough
+    if (Math.abs(diff) > 50) {
+      if (diff > 0) {
+        // Swipe up - go to next
+        next();
+      } else {
+        // Swipe down - go to previous
+        prev();
+      }
+      setTouchStart(null);
+    }
+  };
+
+  const handleTouchEnd = () => {
+    setTouchStart(null);
+  };
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  useEffect(() => {
+    if (isMobile && showInstructions) {
+      const timer = setTimeout(() => {
+        setShowInstructions(false);
+      }, 5000); // Hide after 5 seconds
+
+      return () => clearTimeout(timer);
+    }
+  }, [isMobile, showInstructions]);
+
   const next = async () => {
     if (currentIndex < items.length - 1) {
       setDirection('next');
@@ -112,8 +163,36 @@ const App: React.FC = () => {
 
   return (
     <>
-      <div className="vh-100 bg-dark text-white position-relative overflow-hidden">
+      <div
+        className="vh-100 bg-dark text-white position-relative overflow-hidden"
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+      >
         <h1 className="visually-hidden">WikiReel - Wikipedia Content Explorer</h1>
+        
+        {isMobile && showInstructions && (
+          <CSSTransition
+            in={showInstructions}
+            timeout={300}
+            classNames="fade"
+            unmountOnExit
+            nodeRef={instructionsRef}
+          >
+            <div
+              ref={instructionsRef}
+              className="position-fixed top-0 start-0 end-0 p-3 text-center bg-dark bg-opacity-75"
+              style={{ zIndex: 1000 }}
+            >
+              <div className="d-flex align-items-center justify-content-center gap-2">
+                <i className="bi bi-arrow-up fs-4"></i>
+                <span className="text-white">Swipe up/down to navigate</span>
+                <i className="bi bi-arrow-down fs-4"></i>
+              </div>
+            </div>
+          </CSSTransition>
+        )}
+
         <CSSTransition
           in={loading}
           timeout={300}
@@ -121,7 +200,7 @@ const App: React.FC = () => {
           unmountOnExit
           nodeRef={nodeRef}
         >
-          <div
+          <div 
             ref={nodeRef}
             className="position-fixed top-0 start-0 end-0 bottom-0 d-flex align-items-center justify-content-center bg-dark bg-opacity-50"
           >
@@ -141,7 +220,7 @@ const App: React.FC = () => {
               nodeRef={contentNodeRef}
               appear={!isInitialRender}
             >
-              <div
+              <div 
                 ref={contentNodeRef}
                 className="position-absolute w-100 h-100"
               >
@@ -154,24 +233,26 @@ const App: React.FC = () => {
             </CSSTransition>
           )}
 
-          <div className="position-absolute end-0 top-50 translate-middle-y me-4 d-flex flex-column gap-3">
-            <button
-              onClick={prev}
-              disabled={currentIndex === 0 || isTransitioning}
-              className="btn btn-outline-light rounded-pill px-4 py-3 d-flex align-items-center gap-2 shadow-sm hover-scale glass-effect"
-            >
-              <i className="bi bi-chevron-left fs-5"></i>
-              <span>Previous</span>
-            </button>
-            <button
-              onClick={next}
-              disabled={isTransitioning}
-              className="btn btn-outline-light rounded-pill px-4 py-3 d-flex align-items-center gap-2 shadow-sm hover-scale glass-effect"
-            >
-              <span>Next</span>
-              <i className="bi bi-chevron-right fs-5"></i>
-            </button>
-          </div>
+          {!isMobile && (
+            <div className="position-absolute end-0 top-50 translate-middle-y me-4 d-flex flex-column gap-3">
+              <button
+                onClick={prev}
+                disabled={currentIndex === 0 || isTransitioning}
+                className="btn btn-outline-light rounded-pill px-4 py-3 d-flex align-items-center gap-2 shadow-sm hover-scale glass-effect"
+              >
+                <i className="bi bi-chevron-left fs-5"></i>
+                <span>Previous</span>
+              </button>
+              <button
+                onClick={next}
+                disabled={isTransitioning}
+                className="btn btn-outline-light rounded-pill px-4 py-3 d-flex align-items-center gap-2 shadow-sm hover-scale glass-effect"
+              >
+                <span>Next</span>
+                <i className="bi bi-chevron-right fs-5"></i>
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </>

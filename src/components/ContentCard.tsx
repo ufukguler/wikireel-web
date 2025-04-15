@@ -41,10 +41,9 @@ export const ContentCard: React.FC<ContentCardProps> = ({item}) => {
         })}
       </script>
       <div
-        className="w-100 h-100"
+        className="w-100 h-100 content-card-image"
         style={{
           backgroundImage: `url(${item.imageUrl})`,
-          backgroundSize: 'contain',
           backgroundPosition: 'center',
           backgroundRepeat: 'no-repeat',
           backgroundColor: '#000',
@@ -54,7 +53,7 @@ export const ContentCard: React.FC<ContentCardProps> = ({item}) => {
         <div
           className="position-absolute bottom-0 w-100 p-4 text-white"
           style={{
-            background: 'linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.7) 50%, rgba(0,0,0,0) 100%)',
+            background: 'linear-gradient(to top, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.8) 50%, rgba(0,0,0,0) 100%)',
           }}
         >
           <h2 className="mb-3 fw-bold" itemProp="headline">{item.title}</h2>

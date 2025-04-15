@@ -17,6 +17,17 @@
   cursor: not-allowed;
 }
 
+/* Content card image responsive sizing */
+.content-card-image {
+  background-size: contain;
+}
+
+@media (max-width: 768px) {
+  .content-card-image {
+    background-size: cover;
+  }
+}
+
 /* Fade animations */
 .fade-enter {
   opacity: 0;
