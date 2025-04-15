@@ -2,6 +2,9 @@ import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {CSSTransition} from 'react-transition-group';
 import {fetchAndParseWikipediaContent, WikiItem} from "./services/wikipedia";
 import {ContentCard} from "./components/ContentCard";
+import {NavigationButtons} from "./components/NavigationButtons";
+import {LoadingSpinner} from "./components/LoadingSpinner";
+import {MobileInstructions} from "./components/MobileInstructions";
 import {preloadImage} from "./utils/imagePreloader";
 import 'bootstrap-icons/font/bootstrap-icons.css';
 import './App.css';
@@ -19,9 +22,7 @@ const App: React.FC = () => {
   const [showInstructions, setShowInstructions] = useState(true);
 
   const hasFetched = useRef(false);
-  const nodeRef = useRef<HTMLDivElement>(null);
   const contentNodeRef = useRef<HTMLDivElement>(null);
-  const instructionsRef = useRef<HTMLDivElement>(null);
 
   const fetchMoreData = useCallback(async () => {
     if (isLoadingMore) return;
@@ -30,7 +31,7 @@ const App: React.FC = () => {
     try {
       const newData = await fetchAndParseWikipediaContent();
       setItems(prevItems => [...prevItems, ...newData]);
-      
+
       // Preload the first image of the new batch
       if (newData.length > 0) {
         await preloadImage(newData[0].imageUrl);
@@ -50,7 +51,7 @@ const App: React.FC = () => {
       try {
         const data = await fetchAndParseWikipediaContent();
         setItems(data);
-        
+
         // Preload the first image after data is loaded
         if (data.length > 0) {
           await preloadImage(data[0].imageUrl);
@@ -162,100 +163,50 @@ const App: React.FC = () => {
   };
 
   return (
-    <>
-      <div
-        className="vh-100 bg-dark text-white position-relative overflow-hidden"
-        onTouchStart={handleTouchStart}
-        onTouchMove={handleTouchMove}
-        onTouchEnd={handleTouchEnd}
-      >
-        <h1 className="visually-hidden">WikiReel - Wikipedia Content Explorer</h1>
-        
-        {isMobile && showInstructions && (
+    <div
+      className="vh-100 bg-dark text-white position-relative overflow-hidden"
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
+    >
+      <h1 className="visually-hidden">WikiReel - Wikipedia Content Explorer</h1>
+
+      <LoadingSpinner isLoading={loading}/>
+      <MobileInstructions show={isMobile && showInstructions}/>
+
+      <div className="position-relative w-100 h-100 overflow-hidden">
+        {items.length > 0 && (
           <CSSTransition
-            in={showInstructions}
+            in={!isInitialRender}
             timeout={300}
-            classNames="fade"
-            unmountOnExit
-            nodeRef={instructionsRef}
+            classNames={direction === 'next' ? 'slide' : 'slide-reverse'}
+            key={currentIndex}
+            nodeRef={contentNodeRef}
+            appear={!isInitialRender}
           >
             <div
-              ref={instructionsRef}
-              className="position-fixed top-0 start-0 end-0 p-3 text-center bg-dark bg-opacity-75"
-              style={{ zIndex: 1000 }}
+              ref={contentNodeRef}
+              className="position-absolute w-100 h-100"
             >
-              <div className="d-flex align-items-center justify-content-center gap-2">
-                <i className="bi bi-arrow-up fs-4"></i>
-                <span className="text-white">Swipe up/down to navigate</span>
-                <i className="bi bi-arrow-down fs-4"></i>
-              </div>
+              <ContentCard
+                item={items[currentIndex]}
+                index={0}
+                currentIndex={0}
+              />
             </div>
           </CSSTransition>
         )}
 
-        <CSSTransition
-          in={loading}
-          timeout={300}
-          classNames="fade"
-          unmountOnExit
-          nodeRef={nodeRef}
-        >
-          <div 
-            ref={nodeRef}
-            className="position-fixed top-0 start-0 end-0 bottom-0 d-flex align-items-center justify-content-center bg-dark bg-opacity-50"
-          >
-            <div className="spinner-border text-primary loading-spinner" role="status">
-              <span className="visually-hidden">Loading...</span>
-            </div>
-          </div>
-        </CSSTransition>
-
-        <div className="position-relative w-100 h-100 overflow-hidden">
-          {items.length > 0 && (
-            <CSSTransition
-              in={!isInitialRender}
-              timeout={300}
-              classNames={direction === 'next' ? 'slide' : 'slide-reverse'}
-              key={currentIndex}
-              nodeRef={contentNodeRef}
-              appear={!isInitialRender}
-            >
-              <div 
-                ref={contentNodeRef}
-                className="position-absolute w-100 h-100"
-              >
-                <ContentCard
-                  item={items[currentIndex]}
-                  index={0}
-                  currentIndex={0}
-                />
-              </div>
-            </CSSTransition>
-          )}
-
-          {!isMobile && (
-            <div className="position-absolute end-0 top-50 translate-middle-y me-4 d-flex flex-column gap-3">
-              <button
-                onClick={prev}
-                disabled={currentIndex === 0 || isTransitioning}
-                className="btn btn-outline-light rounded-pill px-4 py-3 d-flex align-items-center gap-2 shadow-sm hover-scale glass-effect"
-              >
-                <i className="bi bi-chevron-left fs-5"></i>
-                <span>Previous</span>
-              </button>
-              <button
-                onClick={next}
-                disabled={isTransitioning}
-                className="btn btn-outline-light rounded-pill px-4 py-3 d-flex align-items-center gap-2 shadow-sm hover-scale glass-effect"
-              >
-                <span>Next</span>
-                <i className="bi bi-chevron-right fs-5"></i>
-              </button>
-            </div>
-          )}
-        </div>
+        {!isMobile && (
+          <NavigationButtons
+            onPrev={prev}
+            onNext={next}
+            isPrevDisabled={currentIndex === 0 || isTransitioning}
+            isNextDisabled={isTransitioning}
+          />
+        )}
       </div>
-    </>
+    </div>
   );
 };
 
