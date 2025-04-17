@@ -1,10 +1,11 @@
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {CSSTransition} from 'react-transition-group';
-import {fetchAndParseWikipediaContent, WikiItem} from "./services/wikipedia";
+import {fetchAndParseWikipediaContent, WikiItem, setWikipediaLanguage} from "./services/wikipedia";
 import {ContentCard} from "./components/ContentCard";
 import {NavigationButtons} from "./components/NavigationButtons";
 import {LoadingSpinner} from "./components/LoadingSpinner";
 import {MobileInstructions} from "./components/MobileInstructions";
+import {LanguageSelector} from "./components/LanguageSelector";
 import {preloadImage} from "./utils/imagePreloader";
 import 'bootstrap-icons/font/bootstrap-icons.css';
 import './App.css';
@@ -20,9 +21,31 @@ const App: React.FC = () => {
   const [touchStart, setTouchStart] = useState<number | null>(null);
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
   const [showInstructions, setShowInstructions] = useState(true);
+  const [currentLanguage, setCurrentLanguage] = useState('en');
 
   const hasFetched = useRef(false);
   const contentNodeRef = useRef<HTMLDivElement>(null);
+
+  const handleLanguageChange = async (languageCode: string) => {
+    setCurrentLanguage(languageCode);
+    setWikipediaLanguage(languageCode);
+    setLoading(true);
+    setItems([]);
+    setCurrentIndex(0);
+    hasFetched.current = false;
+    
+    try {
+      const data = await fetchAndParseWikipediaContent();
+      setItems(data);
+      if (data.length > 0) {
+        await preloadImage(data[0].imageUrl);
+      }
+    } catch (error) {
+      console.error('Error fetching Wikipedia data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const fetchMoreData = useCallback(async () => {
     if (isLoadingMore) return;
@@ -173,6 +196,11 @@ const App: React.FC = () => {
 
       <LoadingSpinner isLoading={loading}/>
       <MobileInstructions show={isMobile && showInstructions}/>
+      <LanguageSelector 
+        currentLanguage={currentLanguage} 
+        onLanguageChange={handleLanguageChange}
+        isMobile={isMobile}
+      />
 
       <div className="position-relative w-100 h-100 overflow-hidden">
         {items.length > 0 && (
@@ -186,13 +214,21 @@ const App: React.FC = () => {
           >
             <div
               ref={contentNodeRef}
-              className="position-absolute w-100 h-100"
+              className="position-absolute w-100 h-100 d-flex justify-content-center align-items-center"
             >
-              <ContentCard
-                item={items[currentIndex]}
-                index={0}
-                currentIndex={0}
-              />
+              <div 
+                className="content-container" 
+                style={{ 
+                  width: isMobile ? '100%' : 'min(70vw, 800px)',
+                  height: '100%'
+                }}
+              >
+                <ContentCard
+                  item={items[currentIndex]}
+                  index={0}
+                  currentIndex={0}
+                />
+              </div>
             </div>
           </CSSTransition>
         )}

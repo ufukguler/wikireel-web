@@ -3,22 +3,29 @@ import axios from 'axios';
 export interface WikiItem {
   title: string;
   extract: string;
-  fullurl: string;
+  fullurl: string | null;
   imageUrl: string;
 }
 
 interface WikiItemResponse {
   title: string;
   extract: string;
-  fullurl: string;
+  fullurl?: string;
+  canonicalurl?: string;
   original: {
     source: string;
   };
 }
 
+let currentLanguage = 'en';
+
+export const setWikipediaLanguage = (languageCode: string) => {
+  currentLanguage = languageCode;
+};
+
 async function fetchAndParseWikipediaContent(): Promise<WikiItem[]> {
   try {
-    const response = await axios.get('https://en.wikipedia.org/w/api.php', {
+    const response = await axios.get(`https://${currentLanguage}.wikipedia.org/w/api.php`, {
       params: {
         action: 'query',
         format: 'json',
@@ -41,11 +48,11 @@ async function fetchAndParseWikipediaContent(): Promise<WikiItem[]> {
 
     for (const pageId in pages) {
       const page = pages[pageId];
-      if (page.title && page.extract && page.fullurl && page.original && page.original.source) {
+      if (page.title && page.extract && page.original && page.original.source) {
         results.push({
           title: page.title,
           extract: page.extract,
-          fullurl: page.fullurl,
+          fullurl: page.fullurl || page.canonicalurl || null,
           imageUrl: page.original.source
         });
       }

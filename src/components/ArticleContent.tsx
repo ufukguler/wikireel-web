@@ -24,7 +24,20 @@ export const ArticleContent: React.FC<ArticleContentProps> = ({ item }) => {
         background: 'linear-gradient(to top, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.8) 50%, rgba(0,0,0,0) 100%)',
       }}
     >
-      <h2 className="mb-3 fw-bold" itemProp="headline">{item.title}</h2>
+      <div className="d-flex justify-content-between align-items-center mb-3">
+        <h2 className="mb-0 fw-bold" itemProp="headline">{item.title}</h2>
+        {item.fullurl && (
+          <a
+            href={item.fullurl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="btn btn-outline-light btn-sm rounded-pill px-3 hover-scale glass-effect"
+          >
+            Read more
+            <i className="bi bi-box-arrow-up-right ms-2"></i>
+          </a>
+        )}
+      </div>
       <div
         className="mb-3"
         style={{

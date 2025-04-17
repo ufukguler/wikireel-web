@@ -20,16 +20,14 @@ export const NavigationButtons: React.FC<NavigationButtonsProps> = ({
         disabled={isPrevDisabled}
         className="btn btn-outline-light rounded-pill px-4 py-3 d-flex align-items-center gap-2 shadow-sm hover-scale glass-effect"
       >
-        <i className="bi bi-chevron-left fs-5"></i>
-        <span>Previous</span>
+        <i className="bi bi-chevron-up fs-5"></i>
       </button>
       <button
         onClick={onNext}
         disabled={isNextDisabled}
         className="btn btn-outline-light rounded-pill px-4 py-3 d-flex align-items-center gap-2 shadow-sm hover-scale glass-effect"
       >
-        <span>Next</span>
-        <i className="bi bi-chevron-right fs-5"></i>
+        <i className="bi bi-chevron-down fs-5"></i>
       </button>
     </div>
   );
