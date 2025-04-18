@@ -1,6 +1,6 @@
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {CSSTransition} from 'react-transition-group';
-import {fetchAndParseWikipediaContent, WikiItem, setWikipediaLanguage} from "./services/wikipedia";
+import {fetchAndParseWikipediaContent, setWikipediaLanguage, WikiItem} from "./services/wikipedia";
 import {ContentCard} from "./components/ContentCard";
 import {NavigationButtons} from "./components/NavigationButtons";
 import {LoadingSpinner} from "./components/LoadingSpinner";
@@ -9,6 +9,7 @@ import {LanguageSelector} from "./components/LanguageSelector";
 import {preloadImage} from "./utils/imagePreloader";
 import 'bootstrap-icons/font/bootstrap-icons.css';
 import './App.css';
+import ReactGA from "react-ga4";
 
 const App: React.FC = () => {
   const [items, setItems] = useState<WikiItem[]>([]);
@@ -33,7 +34,7 @@ const App: React.FC = () => {
     setItems([]);
     setCurrentIndex(0);
     hasFetched.current = false;
-    
+
     try {
       const data = await fetchAndParseWikipediaContent();
       setItems(data);
@@ -67,6 +68,7 @@ const App: React.FC = () => {
   }, [isLoadingMore]);
 
   useEffect(() => {
+    ReactGA.initialize("G-LZ7F2X9Q9G");
     const fetchData = async () => {
       if (hasFetched.current) return;
       hasFetched.current = true;
@@ -205,6 +207,7 @@ const App: React.FC = () => {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isTransitioning, currentIndex, items.length]);
 
   return (
@@ -218,8 +221,8 @@ const App: React.FC = () => {
 
       <LoadingSpinner isLoading={loading}/>
       <MobileInstructions show={isMobile && showInstructions}/>
-      <LanguageSelector 
-        currentLanguage={currentLanguage} 
+      <LanguageSelector
+        currentLanguage={currentLanguage}
         onLanguageChange={handleLanguageChange}
         isMobile={isMobile}
       />
@@ -238,9 +241,9 @@ const App: React.FC = () => {
               ref={contentNodeRef}
               className="position-absolute w-100 h-100 d-flex justify-content-center align-items-center"
             >
-              <div 
-                className="content-container" 
-                style={{ 
+              <div
+                className="content-container"
+                style={{
                   width: isMobile ? '100%' : 'min(70vw, 800px)',
                   height: '100%'
                 }}
