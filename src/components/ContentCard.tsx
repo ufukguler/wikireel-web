@@ -36,7 +36,7 @@ export const ContentCard: React.FC<ContentCardProps> = ({ item }) => {
           backgroundImage: `url(${item.imageUrl})`,
           backgroundPosition: 'center',
           backgroundRepeat: 'no-repeat',
-          backgroundSize: 'cover',
+          backgroundSize: 'contain',
           backgroundColor: '#000',
           position: 'relative',
           minHeight: '100%'
