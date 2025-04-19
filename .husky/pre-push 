@@ -1,0 +1,25 @@
+#!/bin/sh
+. "$(dirname "$0")/_/husky.sh"
+
+if command -v nvm >/dev/null 2>&1; then
+  echo "nvm found, switching to the appropriate Node.js version..."
+  nvm use
+fi
+
+# Get the current branch name
+BRANCH=$(git rev-parse --abbrev-ref HEAD)
+
+# Only run the build on master or production branches
+if [ "$BRANCH" = "master" ] || [ "$BRANCH" = "production" ]; then
+  echo "Running build on branch: $BRANCH"
+  yarn build
+  BUILD_STATUS=$?
+  if [ $BUILD_STATUS -ne 0 ]; then
+    echo "Build failed, aborting push."
+    exit 1
+  else
+    echo "Build succeeded, proceeding with push."
+  fi
+else
+  echo "Skipping build on branch: $BRANCH"
+fi

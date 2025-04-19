@@ -12,27 +12,30 @@ export const ContentCard: React.FC<ContentCardProps> = ({ item, index, currentIn
   const cardRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    const node = cardRef.current;
+
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach(entry => {
           if (entry.isIntersecting) {
-            // Card is visible, you can add any logic here if needed
+            // Card is visible
           }
         });
       },
       { threshold: 0.5 }
     );
 
-    if (cardRef.current) {
-      observer.observe(cardRef.current);
+    if (node) {
+      observer.observe(node);
     }
 
     return () => {
-      if (cardRef.current) {
-        observer.unobserve(cardRef.current);
+      if (node) {
+        observer.unobserve(node);
       }
     };
   }, []);
+
 
   return (
     <article 
