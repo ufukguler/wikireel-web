@@ -1,5 +1,5 @@
 import React from 'react';
-import { WikiItem } from "../services/wikipedia";
+import { WikiItem } from '../services/wikipedia';
 import { ArticleContent } from './ArticleContent';
 
 interface ContentCardProps {

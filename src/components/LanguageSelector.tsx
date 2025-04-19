@@ -1,21 +1,5 @@
-import React from 'react';
-
-interface Language {
-  name: string;
-  nativeName: string;
-  code: string;
-}
-
-const languages: Language[] = [
-  { name: 'English', nativeName: 'English', code: 'en' },
-  { name: 'German', nativeName: 'Deutsch', code: 'de' },
-  { name: 'French', nativeName: 'Français', code: 'fr' },
-  { name: 'Portuguese', nativeName: 'Português', code: 'pt' },
-  { name: 'Spanish', nativeName: 'Español', code: 'es' },
-  { name: 'Ukrainian', nativeName: 'українська', code: 'uk' },
-  { name: 'Italian', nativeName: 'italiano', code: 'it' },
-  { name: 'Turkish', nativeName: 'Türkçe', code: 'tr' },
-];
+import React, { useState } from 'react';
+import 'bootstrap-icons/font/bootstrap-icons.css';
 
 interface LanguageSelectorProps {
   currentLanguage: string;
@@ -23,25 +7,63 @@ interface LanguageSelectorProps {
   isMobile: boolean;
 }
 
-export const LanguageSelector: React.FC<LanguageSelectorProps> = ({ currentLanguage, onLanguageChange, isMobile }) => {
+const languages = [
+  { code: 'en', name: 'English' },
+  { code: 'tr', name: 'Türkçe' },
+  { code: 'de', name: 'Deutsch' },
+  { code: 'fr', name: 'Français' },
+  { code: 'es', name: 'Español' },
+  { code: 'it', name: 'Italiano' },
+  { code: 'pt', name: 'Português' },
+  { code: 'ru', name: 'Русский' },
+  { code: 'zh', name: '中文' },
+  { code: 'ja', name: '日本語' }
+];
+
+export const LanguageSelector: React.FC<LanguageSelectorProps> = ({
+  currentLanguage,
+  onLanguageChange,
+  isMobile
+}) => {
+  const [isOpen, setIsOpen] = useState(false);
+
+  const handleToggle = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setIsOpen(!isOpen);
+  };
+
+  const handleSelect = (code: string) => {
+    onLanguageChange(code);
+    setIsOpen(false);
+  };
+
   return (
-    <div 
-      className={`language-selector position-absolute ${isMobile ? 'top-0 end-0 m-3' : 'top-0 end-0 m-3'}`}
-      style={{ zIndex: 1000 }}
-    >
-      <select
-        className={`form-select form-select-sm glass-effect text-white ${isMobile ? 'w-auto' : ''}`}
-        value={currentLanguage}
-        onChange={(e) => onLanguageChange(e.target.value)}
-        aria-label="language"
-        style={{ cursor: 'pointer' }}
-      >
-        {languages.map((lang) => (
-          <option key={lang.code} value={lang.code}>
-            {isMobile ? lang.code.toUpperCase() : `${lang.nativeName} (${lang.name})`}
-          </option>
-        ))}
-      </select>
+    <div className={`language-selector ${isMobile ? 'mobile' : ''}`}>
+      <div className="dropdown">
+        <button
+          className="btn btn-outline-light dropdown-toggle w-100"
+          type="button"
+          onClick={handleToggle}
+          aria-expanded={isOpen}
+        >
+          <i className="bi bi-translate me-2"></i>
+          {languages.find(lang => lang.code === currentLanguage)?.name || 'Select Language'}
+        </button>
+        {isOpen && (
+          <ul className="dropdown-menu show" style={{ display: 'block' }}>
+            {languages.map((language) => (
+              <li key={language.code}>
+                <button
+                  className={`dropdown-item ${currentLanguage === language.code ? 'active' : ''}`}
+                  onClick={() => handleSelect(language.code)}
+                >
+                  {language.name}
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
     </div>
   );
 }; 

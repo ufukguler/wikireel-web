@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { WikiItem } from '../services/wikipedia';
+import React, {useState} from 'react';
+import {WikiItem} from '../services/wikipedia';
 
 interface ArticleContentProps {
   item: WikiItem;
@@ -8,7 +8,7 @@ interface ArticleContentProps {
 const MAX_LINES = 8;
 const LINE_HEIGHT = 1.5;
 
-export const ArticleContent: React.FC<ArticleContentProps> = ({ item }) => {
+export const ArticleContent: React.FC<ArticleContentProps> = ({item}) => {
   const [isExpanded, setIsExpanded] = useState(false);
 
   const toggleExpand = () => {
@@ -42,24 +42,24 @@ export const ArticleContent: React.FC<ArticleContentProps> = ({ item }) => {
         className="mb-3"
         style={{
           maxHeight: isExpanded ? 'none' : `${MAX_LINES * LINE_HEIGHT}rem`,
-          overflow: 'hidden',
+          overflow: isExpanded ? 'hidden' : 'auto',
           transition: 'max-height 0.3s ease-in-out',
         }}
         itemProp="articleBody"
       >
-        <p className="mb-0">{item.extract}</p>
+        <p className="mb-0" dangerouslySetInnerHTML={{__html: item.extract}}></p>
       </div>
-      {shouldShowReadMore && (
-        <button
-          onClick={toggleExpand}
-          className="btn btn-outline-light btn-sm rounded-pill px-3 hover-scale glass-effect"
-          aria-expanded={isExpanded}
-          aria-controls="article-content"
-        >
-          {isExpanded ? 'Show Less' : 'Read More'}
-          <i className={`bi bi-chevron-${isExpanded ? 'up' : 'down'} ms-2`}></i>
-        </button>
-      )}
+      {/*{shouldShowReadMore && (*/}
+      {/*  <button*/}
+      {/*    onClick={toggleExpand}*/}
+      {/*    className="btn btn-outline-light btn-sm rounded-pill px-3 hover-scale glass-effect"*/}
+      {/*    aria-expanded={isExpanded}*/}
+      {/*    aria-controls="article-content"*/}
+      {/*  >*/}
+      {/*    {isExpanded ? 'Show Less' : 'Read More'}*/}
+      {/*    <i className={`bi bi-chevron-${isExpanded ? 'up' : 'down'} ms-2`}></i>*/}
+      {/*  </button>*/}
+      {/*)}*/}
     </div>
   );
 }; 

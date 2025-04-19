@@ -17,6 +17,12 @@ interface WikiItemResponse {
   };
 }
 
+interface SearchResult {
+  title: string;
+  snippet: string;
+  pageid: number;
+}
+
 let currentLanguage = 'en';
 
 export const setWikipediaLanguage = (languageCode: string) => {
@@ -65,4 +71,46 @@ async function fetchAndParseWikipediaContent(): Promise<WikiItem[]> {
   }
 }
 
-export {fetchAndParseWikipediaContent};
+async function searchWikipedia(query: string): Promise<WikiItem[]> {
+  try {
+    const response = await axios.get(`https://${currentLanguage}.wikipedia.org/w/api.php`, {
+      params: {
+        action: 'query',
+        format: 'json',
+        generator: 'search',
+        gsrnamespace: 0,
+        gsrlimit: 50,
+        gsrsearch: query,
+        prop: 'extracts|pageimages|info',
+        inprop: 'url',
+        exintro: 1,
+        exsectionformat: 'plain',
+        piprop: 'original|thumbnail',
+        pithumbsize: 1000,
+        origin: '*'
+      }
+    });
+
+    const pages: WikiItemResponse[] = response.data.query?.pages || [];
+    const results: WikiItem[] = [];
+
+    for (const pageId in pages) {
+      const page = pages[pageId];
+      if (page.title && page.extract) {
+        results.push({
+          title: page.title,
+          extract: page.extract,
+          fullurl: page.fullurl || page.canonicalurl || null,
+          imageUrl: page.original?.source || ''
+        });
+      }
+    }
+
+    return results;
+  } catch (error) {
+    console.error('Error searching Wikipedia:', error);
+    return [];
+  }
+}
+
+export { fetchAndParseWikipediaContent, searchWikipedia };

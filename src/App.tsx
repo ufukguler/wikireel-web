@@ -1,11 +1,12 @@
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {CSSTransition} from 'react-transition-group';
-import {fetchAndParseWikipediaContent, setWikipediaLanguage, WikiItem} from "./services/wikipedia";
+import {fetchAndParseWikipediaContent, searchWikipedia, setWikipediaLanguage, WikiItem} from "./services/wikipedia";
 import {ContentCard} from "./components/ContentCard";
 import {NavigationButtons} from "./components/NavigationButtons";
 import {LoadingSpinner} from "./components/LoadingSpinner";
 import {MobileInstructions} from "./components/MobileInstructions";
 import {LanguageSelector} from "./components/LanguageSelector";
+import {HamburgerMenu} from "./components/HamburgerMenu";
 import {preloadImage} from "./utils/imagePreloader";
 import 'bootstrap-icons/font/bootstrap-icons.css';
 import './App.css';
@@ -23,6 +24,7 @@ const App: React.FC = () => {
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
   const [showInstructions, setShowInstructions] = useState(true);
   const [currentLanguage, setCurrentLanguage] = useState('en');
+  const [isSearchMode, setIsSearchMode] = useState(false);
 
   const hasFetched = useRef(false);
   const contentNodeRef = useRef<HTMLDivElement>(null);
@@ -48,6 +50,50 @@ const App: React.FC = () => {
     }
   };
 
+  const handleSearch = async (query: string) => {
+    setLoading(true);
+    setIsSearchMode(true);
+    try {
+      const searchResults = await searchWikipedia(query);
+      setItems(searchResults);
+      setCurrentIndex(0);
+      
+      if (searchResults.length > 0) {
+        await preloadImage(searchResults[0].imageUrl);
+      }
+    } catch (error) {
+      console.error('Error searching Wikipedia:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleExitSearch = () => {
+    setIsSearchMode(false);
+    // Reset to random content
+    hasFetched.current = false;
+    fetchData();
+  };
+
+  const fetchData = async () => {
+    if (hasFetched.current) return;
+    hasFetched.current = true;
+
+    try {
+      const data = await fetchAndParseWikipediaContent();
+      setItems(data);
+
+      if (data.length > 0) {
+        await preloadImage(data[0].imageUrl);
+      }
+    } catch (error) {
+      console.error('Error fetching Wikipedia data:', error);
+    } finally {
+      setLoading(false);
+      setIsInitialRender(false);
+    }
+  };
+
   const fetchMoreData = useCallback(async () => {
     if (isLoadingMore) return;
     setIsLoadingMore(true);
@@ -69,26 +115,7 @@ const App: React.FC = () => {
 
   useEffect(() => {
     ReactGA.initialize("G-LZ7F2X9Q9G");
-    const fetchData = async () => {
-      if (hasFetched.current) return;
-      hasFetched.current = true;
-
-      try {
-        const data = await fetchAndParseWikipediaContent();
-        setItems(data);
-
-        // Preload the first image after data is loaded
-        if (data.length > 0) {
-          await preloadImage(data[0].imageUrl);
-        }
-      } catch (error) {
-        console.error('Error fetching Wikipedia data:', error);
-      } finally {
-        setLoading(false);
-        setIsInitialRender(false);
-      }
-    };
-
+    // Make the initial API call immediately
     fetchData();
   }, []);
 
@@ -216,18 +243,32 @@ const App: React.FC = () => {
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
+      style={{ position: 'relative' }}
     >
       <h1 className="visually-hidden">WikiReel - Wikipedia Content Explorer</h1>
 
       <LoadingSpinner isLoading={loading}/>
       <MobileInstructions show={isMobile && showInstructions}/>
-      <LanguageSelector
-        currentLanguage={currentLanguage}
-        onLanguageChange={handleLanguageChange}
-        isMobile={isMobile}
-      />
+      
+      {isMobile ? (
+        <div style={{ position: 'relative', zIndex: 1050 }}>
+          <HamburgerMenu
+            currentLanguage={currentLanguage}
+            onLanguageChange={handleLanguageChange}
+            onSearch={handleSearch}
+            onExitSearch={handleExitSearch}
+            isSearchMode={isSearchMode}
+          />
+        </div>
+      ) : (
+        <LanguageSelector
+          currentLanguage={currentLanguage}
+          onLanguageChange={handleLanguageChange}
+          isMobile={false}
+        />
+      )}
 
-      <div className="position-relative w-100 h-100 overflow-hidden">
+      <div className="position-relative w-100 h-100 overflow-hidden" style={{ zIndex: 1 }}>
         {items.length > 0 && (
           <CSSTransition
             in={!isInitialRender}
