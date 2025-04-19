@@ -8,15 +8,13 @@ interface HamburgerMenuProps {
   onLanguageChange: (languageCode: string) => void;
   onSearch: (query: string) => void;
   onExitSearch: () => void;
-  isSearchMode: boolean;
 }
 
 export const HamburgerMenu: React.FC<HamburgerMenuProps> = ({
   currentLanguage,
   onLanguageChange,
   onSearch,
-  onExitSearch,
-  isSearchMode
+  onExitSearch
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -24,6 +22,7 @@ export const HamburgerMenu: React.FC<HamburgerMenuProps> = ({
   const menuRef = useRef<HTMLDivElement>(null);
 
   const handleSearch = (e: React.FormEvent) => {
+    console.info(`handleSearch: ${searchQuery.trim()}`);
     e.preventDefault();
     if (searchQuery.trim()) {
       onSearch(searchQuery);
@@ -32,6 +31,7 @@ export const HamburgerMenu: React.FC<HamburgerMenuProps> = ({
   };
 
   const handleExitSearch = () => {
+    console.info('handleExitSearch');
     onExitSearch();
     setIsOpen(false);
   };
@@ -76,33 +76,35 @@ export const HamburgerMenu: React.FC<HamburgerMenuProps> = ({
           ref={nodeRef}
         >
           <div className="menu-content-wrapper">
-            {isSearchMode ? (
-              <button
-                className="btn btn-outline-light w-100 mb-3"
-                onClick={handleExitSearch}
-              >
-                <i className="bi bi-arrow-left me-2"></i>
-                Back to Random Content
-              </button>
-            ) : (
-              <form onSubmit={handleSearch} className="mb-3">
-                <div className="input-group">
-                  <input
-                    type="text"
-                    className="form-control bg-dark text-white border-light"
-                    placeholder="Search Wikipedia..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                  />
+            <form onSubmit={handleSearch} className="mb-3">
+              <div className="input-group">
+                <input
+                  type="text"
+                  className="form-control bg-dark text-white border-light"
+                  placeholder="Search Wikipedia..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+                {searchQuery && (
                   <button
+                    type="button"
                     className="btn btn-outline-light"
-                    type="submit"
+                    onClick={() => {
+                      setSearchQuery('');
+                      handleExitSearch();
+                    }}
                   >
-                    <i className="bi bi-search"></i>
+                    <i className="bi bi-x"></i>
                   </button>
-                </div>
-              </form>
-            )}
+                )}
+                <button
+                  className="btn btn-outline-light"
+                  type="submit"
+                >
+                  <i className="bi bi-search"></i>
+                </button>
+              </div>
+            </form>
           </div>
           
           <LanguageSelector

@@ -1,11 +1,11 @@
 import React from 'react';
-import { CSSTransition } from 'react-transition-group';
+import {CSSTransition} from 'react-transition-group';
 
 interface LoadingSpinnerProps {
   isLoading: boolean;
 }
 
-export const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({ isLoading }) => {
+export const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({isLoading}) => {
   const nodeRef = React.useRef<HTMLDivElement>(null);
 
   return (
@@ -16,7 +16,7 @@ export const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({ isLoading }) => 
       unmountOnExit
       nodeRef={nodeRef}
     >
-      <div 
+      <div
         ref={nodeRef}
         className="position-fixed top-0 start-0 end-0 bottom-0 d-flex align-items-center justify-content-center bg-dark bg-opacity-50"
       >

@@ -207,8 +207,6 @@
 }
 
 .menu-content-wrapper {
-  flex: 1;
-  padding-bottom: 80px;
   position: relative;
   z-index: 10002;
 }
@@ -232,19 +230,19 @@
 }
 
 .language-selector {
-  position: relative;
-  z-index: 1000;
+  z-index: 1099;
+  position: fixed;
+  width: 15%;
+  right: 5%;
+  top: 2%;
 }
 
 .language-selector.mobile {
-  position: sticky;
-  bottom: 0;
-  left: 0;
+  position: static;
   width: 100%;
-  padding: 1rem;
-  background-color: rgba(33, 37, 41, 0.98);
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-  margin-top: auto;
+  padding: 0;
+  background-color: transparent;
+  border: none;
   z-index: 10002;
 }
 
@@ -253,27 +251,34 @@
 }
 
 .language-selector.mobile .dropdown-toggle {
-  background-color: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  background-color: rgba(33, 37, 41, 0.98) !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
   padding: 0.75rem 1rem;
   font-size: 1rem;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  z-index: 1001;
+  width: 100%;
+  border-radius: 8px;
+}
+
+.language-selector.mobile .dropdown-toggle:hover {
+  background-color: rgba(255, 255, 255, 0.2);
 }
 
 .language-selector.mobile .dropdown-menu {
   width: 100%;
-  background-color: rgba(33, 37, 41, 0.98);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  background-color: rgba(33, 37, 41, 0.98) !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
   max-height: 300px;
   overflow-y: auto;
   z-index: 1002;
   position: absolute;
-  bottom: 100%;
-  margin-bottom: 0.5rem;
-  transform-origin: bottom;
+  top: 100%;
+  left: 0;
+  margin-top: 0.5rem;
+  transform-origin: top;
+  border-radius: 8px;
 }
 
 .language-selector.mobile .dropdown-item {
@@ -289,4 +294,19 @@
 
 .language-selector.mobile .dropdown-item.active {
   background-color: rgba(255, 255, 255, 0.2);
-} 
+}
+
+.hide-scrollbar {
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
+}
+
+.hide-scrollbar::-webkit-scrollbar {
+  display: none; /* Chrome, Safari and Opera */
+}
+
+.mobile-instructions {
+  z-index: 1000;
+  padding-top: 1.6rem !important;
+  padding-bottom: 1.6rem !important;
+}

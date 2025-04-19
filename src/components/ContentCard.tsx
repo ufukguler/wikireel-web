@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { WikiItem } from '../services/wikipedia';
 import { ArticleContent } from './ArticleContent';
 
@@ -8,9 +8,39 @@ interface ContentCardProps {
   currentIndex: number;
 }
 
-export const ContentCard: React.FC<ContentCardProps> = ({ item }) => {
+export const ContentCard: React.FC<ContentCardProps> = ({ item, index, currentIndex }) => {
+  const cardRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            // Card is visible, you can add any logic here if needed
+          }
+        });
+      },
+      { threshold: 0.5 }
+    );
+
+    if (cardRef.current) {
+      observer.observe(cardRef.current);
+    }
+
+    return () => {
+      if (cardRef.current) {
+        observer.unobserve(cardRef.current);
+      }
+    };
+  }, []);
+
   return (
-    <article className="position-relative w-100 h-100" itemScope itemType="http://schema.org/Article">
+    <article 
+      ref={cardRef}
+      className="position-relative w-100 h-100" 
+      itemScope 
+      itemType="http://schema.org/Article"
+    >
       <script type="application/ld+json">
         {JSON.stringify({
           "@context": "https://schema.org",

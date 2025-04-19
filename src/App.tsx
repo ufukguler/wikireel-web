@@ -1,16 +1,15 @@
 import React, {useCallback, useEffect, useRef, useState} from 'react';
-import {CSSTransition} from 'react-transition-group';
 import {fetchAndParseWikipediaContent, searchWikipedia, setWikipediaLanguage, WikiItem} from "./services/wikipedia";
 import {ContentCard} from "./components/ContentCard";
 import {NavigationButtons} from "./components/NavigationButtons";
 import {LoadingSpinner} from "./components/LoadingSpinner";
 import {MobileInstructions} from "./components/MobileInstructions";
-import {LanguageSelector} from "./components/LanguageSelector";
 import {HamburgerMenu} from "./components/HamburgerMenu";
 import {preloadImage} from "./utils/imagePreloader";
 import 'bootstrap-icons/font/bootstrap-icons.css';
 import './App.css';
 import ReactGA from "react-ga4";
+import {CSSTransition} from "react-transition-group";
 
 const App: React.FC = () => {
   const [items, setItems] = useState<WikiItem[]>([]);
@@ -24,7 +23,6 @@ const App: React.FC = () => {
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
   const [showInstructions, setShowInstructions] = useState(true);
   const [currentLanguage, setCurrentLanguage] = useState('en');
-  const [isSearchMode, setIsSearchMode] = useState(false);
 
   const hasFetched = useRef(false);
   const contentNodeRef = useRef<HTMLDivElement>(null);
@@ -51,13 +49,14 @@ const App: React.FC = () => {
   };
 
   const handleSearch = async (query: string) => {
+    console.info(`handleSearch: ${query}`);
+    setItems([]);
     setLoading(true);
-    setIsSearchMode(true);
     try {
       const searchResults = await searchWikipedia(query);
       setItems(searchResults);
       setCurrentIndex(0);
-      
+
       if (searchResults.length > 0) {
         await preloadImage(searchResults[0].imageUrl);
       }
@@ -69,15 +68,19 @@ const App: React.FC = () => {
   };
 
   const handleExitSearch = () => {
-    setIsSearchMode(false);
+    console.info('handleExitSearch');
+    setLoading(true);
+    setItems([]);
     // Reset to random content
     hasFetched.current = false;
     fetchData();
   };
 
   const fetchData = async () => {
+    console.info('fetchData');
     if (hasFetched.current) return;
     hasFetched.current = true;
+    setLoading(true);
 
     try {
       const data = await fetchAndParseWikipediaContent();
@@ -95,6 +98,7 @@ const App: React.FC = () => {
   };
 
   const fetchMoreData = useCallback(async () => {
+    console.info('fetchMoreData');
     if (isLoadingMore) return;
     setIsLoadingMore(true);
 
@@ -243,33 +247,64 @@ const App: React.FC = () => {
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
-      style={{ position: 'relative' }}
+      style={{position: 'relative'}}
     >
       <h1 className="visually-hidden">WikiReel - Wikipedia Content Explorer</h1>
 
       <LoadingSpinner isLoading={loading}/>
       <MobileInstructions show={isMobile && showInstructions}/>
-      
-      {isMobile ? (
-        <div style={{ position: 'relative', zIndex: 1050 }}>
-          <HamburgerMenu
-            currentLanguage={currentLanguage}
-            onLanguageChange={handleLanguageChange}
-            onSearch={handleSearch}
-            onExitSearch={handleExitSearch}
-            isSearchMode={isSearchMode}
-          />
-        </div>
-      ) : (
-        <LanguageSelector
+
+      <div style={{position: 'relative', zIndex: 1050}}>
+        <HamburgerMenu
           currentLanguage={currentLanguage}
           onLanguageChange={handleLanguageChange}
-          isMobile={false}
+          onSearch={handleSearch}
+          onExitSearch={handleExitSearch}
         />
-      )}
+      </div>
 
-      <div className="position-relative w-100 h-100 overflow-hidden" style={{ zIndex: 1 }}>
-        {items.length > 0 && (
+      <div
+        className="position-relative w-100 h-100 hide-scrollbar"
+        style={{
+          overflowY: isMobile ? 'scroll' : 'hidden',
+          scrollSnapType: isMobile ? 'y mandatory' : 'none',
+          WebkitOverflowScrolling: 'touch'
+        }}
+        onScroll={(e) => {
+          if (isMobile) {
+            const {scrollTop, scrollHeight, clientHeight} = e.currentTarget;
+            // If we're near the bottom (within 1000px), load more content
+            if (scrollHeight - scrollTop - clientHeight < 1000) {
+              fetchMoreData();
+            }
+          }
+        }}
+      >
+        {items.length ? (isMobile ? items.map((item, index) => (
+          <div
+            key={index}
+            className="w-100 h-100"
+            style={{
+              scrollSnapAlign: isMobile ? 'start' : 'none',
+              position: 'relative'
+            }}
+          >
+            <div
+              className="content-container"
+              style={{
+                width: isMobile ? '100%' : 'min(70vw, 800px)',
+                height: '100%',
+                margin: '0 auto'
+              }}
+            >
+              <ContentCard
+                item={item}
+                index={index}
+                currentIndex={currentIndex}
+              />
+            </div>
+          </div>
+        )) : (
           <CSSTransition
             in={!isInitialRender}
             timeout={300}
@@ -297,17 +332,20 @@ const App: React.FC = () => {
               </div>
             </div>
           </CSSTransition>
-        )}
-
-        {!isMobile && (
-          <NavigationButtons
-            onPrev={prev}
-            onNext={next}
-            isPrevDisabled={currentIndex === 0 || isTransitioning}
-            isNextDisabled={isTransitioning}
-          />
-        )}
+        )) : (
+          <></>
+        )
+        }
       </div>
+
+      {!isMobile && (
+        <NavigationButtons
+          onPrev={prev}
+          onNext={next}
+          isPrevDisabled={currentIndex === 0 || isTransitioning}
+          isNextDisabled={isTransitioning}
+        />
+      )}
     </div>
   );
 };
