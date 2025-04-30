@@ -30,7 +30,9 @@
     "build": "NODE_OPTIONS=--openssl-legacy-provider react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
-    "prepare": "husky"
+    "prepare": "husky",
+    "predeploy": "npm run build",
+    "deploy": "gh-pages -d build"
   },
   "eslintConfig": {
     "extends": [
@@ -38,6 +40,7 @@
       "react-app/jest"
     ]
   },
+  "homepage": "https://wikireel.app",
   "proxy": "https://en.wikipedia.org",
   "browserslist": {
     "production": [
